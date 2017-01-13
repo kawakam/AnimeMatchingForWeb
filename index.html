@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>AnimeMatching</title>
+  <!-- SDKの読み込み -->
+  <script type="text/javascript" src="ncmb_js-2.1.3/ncmb.min.js" charset="utf-8"></script>
+  <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=ja"></script>
+  <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js'></script>
+  <script>
+    // mobile backendアプリとの連携
+    var ncmb = new NCMB("007aded69126a2552ed4897b7e999cef478eda473803b204dc1396092a4201a7",
+                        "6d1fcc5c163b174398fbcb7c297a3fd114c93c3f4fd8514a88b61e45d3d199f1");
+    var users = [];
+
+    var Users = ncmb.DataStore("User");
+    Users.fetchAll()
+             .then(function(results){
+                for (var i = 0; i < results.length; i++) {
+                  var object = results[i];
+                  var add_user = {"lat": object.Latitude,
+                                  "lng": object.Longitude,
+                                  "fav": object.FavoriteAnimation,
+                                  "name": object.get("Name")}
+                  users.push(add_user);
+                }
+              })
+             .catch(function(err){
+                console.log(err);
+              });
+
+    var c_lat, c_lng
+    var map;
+    var marker;
+    var user_data = {"user": users}
+
+
+    c_lat = 35.698353;
+    c_lng = 139.773114;
+
+    window.onload = function(){
+      draw_map(c_lat, c_lng);
+      plot_sites(user_data);
+    }
+
+    function draw_map(lat,lng){
+      var op = {
+        zoom: 16,
+        center:new google.maps.LatLng(lat,lng),
+        mapTypeId:google.maps.MapTypeId.ROADMAP
+      };
+      map = new
+      google.maps.Map(document.getElementById("map"),op);
+    }
+
+    function plot_sites(data){
+      var len = data.user.length;
+      for (var i=0; i < len; i=(i+1)){
+        var site = data.user[i];
+        var lat = site.lat;
+        var lng = site.lng;
+        var name = site.name;
+        var fav = site.fav;
+        var pos = new google.maps.LatLng(lat,lng);
+        var marker_prop = {position:pos, map:map, title:name};
+        var marker = new google.maps.Marker(marker_prop);
+        marker = add_InfoWindow(marker, name, fav);
+      }
+    }
+
+    function add_InfoWindow(marker, name, fav){
+      var infowindow = new google.maps.InfoWindow();
+      google.maps.event.addListener(marker, 'click', function() {
+        infowindow.setContent("Name: " + name + "<div id='infoWindow'>Fav: " + fav);
+        infowindow.open(map, marker);
+      });
+      google.maps.event.addListener(map, 'click', function() {
+        infowindow.close();
+      });
+      return marker;
+    }
+
+    function search() {
+      //TODO
+      //検索内容と一致するユーザのピンのみ表示
+      console.log("hoge");
+    }
+
+  </script>
+  <style>
+    #map {
+      width: 100vw;
+      height: auto;
+      min-height: 100vh;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.6/semantic.min.css" integrity="sha256-iK7AZM7Xa42iuURdMdo1sp38ld/JJ3fDtS0523GKqdk=" crossorigin="anonymous" />
+</head>
+<body>
+  <!-- サイドバーメニュー -->
+  <div class="ui sidebar inverted vertical menu">
+    <form class="item" action="search()">
+      ガルパン
+    </form>
+    <form class="item" action="search()">
+      くまみこ
+    </form>
+    <form class="item" action="search()">
+      ラブライブ！
+    </form>
+    <form class="item" action="search()">
+      氷菓
+    </form>
+    <form class="item" action="search()">
+      アイマス
+    </form>
+    <form class="item" action="search()">
+      シュタインズゲート
+    </form>
+  </div>
+
+  <!-- 上部ナビゲーションメニュー -->
+  <div class="ui fixed menu">
+    <div class="menu">
+      <div id="js-sidebar" class="item"><i class="icon large grey content"></i></div>
+    </div>
+  </div>
+
+  <!-- コンテンツ本体 -->
+  <div id="map"></div>
+
+  <!-- semantic.js 読み込み -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.6/semantic.min.js" integrity="sha256-HcON65l89nxNl7vaRECVPe/zNDBzhCcJYBE7O+EcruU=" crossorigin="anonymous"></script>
+  <!-- サイドバーの開閉処理 -->
+  <script>
+    $('#js-sidebar').click(function() {
+      $('.ui.sidebar').sidebar('toggle');
+    });
+  </script>
+</body>
+</html>
